@@ -1,0 +1,66 @@
+name: Deploy to GCP
+run-name: ${{ github.actor }} is deploying to GCP
+on:
+  - push
+permissions:
+  contents: read
+  id-token: write
+env:
+  BUCKET_NAME: terraform-cdk-nextjs-dev-tf-state
+  GCP_PROJECT_ID: terraform-cdk-nextjs-dev
+  GCP_REGION: us-central1
+  WORKLOAD_IDENTITY_PROVIDER: projects/645659820643/locations/global/workloadIdentityPools/default-pool/providers/github
+jobs:
+  deploy-to-gcp:
+    runs-on: ubuntu-latest
+    steps:
+      - id: checkout
+        uses: actions/checkout@v3
+
+      - id: node-setup
+        name: Setup Node 18.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - id: oidc-auth
+        name: Authenticate to GCP with OIDC
+        uses: google-github-actions/auth@v1
+        with:
+          token_format: access_token
+          workload_identity_provider: ${{ env.WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: terraform-deployer@${{ env.GCP_PROJECT_ID }}.iam.gserviceaccount.com
+        
+      - id: docker-auth
+        name: Authenticate Docker with GCR
+        uses: 'docker/login-action@v2'
+        with:
+          registry: gcr.io
+          username: oauth2accesstoken
+          password: ${{ steps.oidc-auth.outputs.access_token }}
+      
+      - id: gcloud-setup
+        name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v1'
+
+      - id: gcloud-info
+        name: gcloud CLI info
+        run: gcloud info
+
+      - id: gcloud-create-stack-bucket
+        name: Create dev stack bucket
+        run:  gcloud storage buckets create gs://${{ env.BUCKET_NAME }} --project=${{ env.GCP_PROJECT_ID }} --location=${{ env.GCP_REGION }} --public-access-prevention
+        continue-on-error: true
+
+      - id: npm-install
+        name: NPM install
+        run: npm install
+
+      - id: terraform-deploy
+        name: Terraform deploy (with CDK)
+        uses: hashicorp/terraform-cdk-action@v0.1
+        with:
+          stackName: dev
+          mode: auto-approve-apply
+        env:
+          GCR_ACCESS_TOKEN: ${{ steps.oidc-auth.outputs.access_token }}
