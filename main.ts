@@ -37,7 +37,7 @@ class MyStack extends TerraformStack {
     const nextImage = new Image(this, "next-build", {
       name: `gcr.io/${gcpProvider.project}/next:v${meta.version}`,
       buildAttribute: {
-        context: `/home/franc/source/terraform-cdk-nextjs-demo/app/.`
+        context: `${__dirname}/app`
       },
     });
 
