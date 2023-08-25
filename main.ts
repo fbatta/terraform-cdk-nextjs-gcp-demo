@@ -47,6 +47,7 @@ class MyStack extends TerraformStack {
 
     const nextService = new CloudRunService(this, "next-service", {
       name: "next-service",
+      project: gcpProvider.project,
       location,
       template: {
         spec: {
@@ -61,6 +62,7 @@ class MyStack extends TerraformStack {
 
     new CloudRunServiceIamMember(this, "next-unrestricted", {
       service: nextService.id,
+      project: gcpProvider.project,
       location,
       member: "allUsers",
       role: "roles/run.invoker"
