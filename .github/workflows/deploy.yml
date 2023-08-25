@@ -2,6 +2,7 @@ name: Deploy to GCP
 run-name: ${{ github.actor }} is deploying to GCP
 on:
   - push
+  - workflow_run
 permissions:
   contents: read
   id-token: write
@@ -55,6 +56,10 @@ jobs:
       - id: npm-install
         name: NPM install
         run: npm install
+
+      - id: cdktf-bindings
+        name: Generate module and provider bindings
+        run: npx cdktf-cli get
 
       - id: terraform-deploy
         name: Terraform deploy (with CDK)
