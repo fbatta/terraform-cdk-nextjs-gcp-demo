@@ -65,7 +65,7 @@ jobs:
         name: Terraform deploy (with CDK)
         uses: hashicorp/terraform-cdk-action@v0.1
         with:
-          stackName: dev
+          stackName: terraform-cdk-nextjs-demo
           mode: auto-approve-apply
           githubToken: ${{ secrets.GITHUB_TOKEN }}
         env:
