@@ -2,7 +2,7 @@ name: Deploy to GCP
 run-name: ${{ github.actor }} is deploying to GCP
 on:
   - push
-  - workflow_run
+  - workflow_call
 permissions:
   contents: read
   id-token: write
