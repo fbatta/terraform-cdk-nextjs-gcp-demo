@@ -2,7 +2,7 @@ name: Deploy to GCP
 run-name: ${{ github.actor }} is deploying to GCP
 on:
   - push
-  - workflow_call
+  - workflow_dispatch
 permissions:
   contents: read
   id-token: write
@@ -67,5 +67,6 @@ jobs:
         with:
           stackName: dev
           mode: auto-approve-apply
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
         env:
           GCR_ACCESS_TOKEN: ${{ steps.oidc-auth.outputs.access_token }}
